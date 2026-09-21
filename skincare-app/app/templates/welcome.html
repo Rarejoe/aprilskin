@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Continue as Model — {{ brand_name }}{% endblock %}
+
+{% block body %}
+<section class="hero">
+  <div class="hero-card">
+    <p class="hero-eyebrow" style="color:var(--gold); text-align:center;">{{ brand_name }}</p>
+    <h1>Continue as Model</h1>
+    <p class="hero-sub">Sign in with your invitation code to shop this season's curated packages.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="tab-switch">
+      <button type="button" class="active" data-tab-target="panel-login">Sign In</button>
+      <button type="button" data-tab-target="panel-register">New Model</button>
+    </div>
+
+    <div id="panel-login" class="form-panel active">
+      <form method="POST" action="{{ url_for('auth.login') }}">
+        <input type="hidden" name="next_url" value="{{ next_url }}">
+        <div class="field">
+          <label for="login-email">Gmail address</label>
+          <input id="login-email" type="email" name="email" placeholder="you@gmail.com" required>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <div class="field">
+          <label for="login-code">Invitation code</label>
+          <input id="login-code" type="text" name="invitation_code" placeholder="e.g. WELCOME2026" required>
+          <p class="field-hint">Provided by your agency admin. Required every sign-in.</p>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Enter the Portal</button>
+      </form>
+    </div>
+
+    <div id="panel-register" class="form-panel">
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        <div class="field">
+          <label for="reg-name">Full name</label>
+          <input id="reg-name" type="text" name="display_name" placeholder="Jane Doe" required>
+        </div>
+        <div class="field">
+          <label for="reg-email">Gmail address</label>
+          <input id="reg-email" type="email" name="email" placeholder="you@gmail.com" required>
+        </div>
+        <div class="field">
+          <label for="reg-password">Password</label>
+          <input id="reg-password" type="password" name="password" placeholder="At least 8 characters" required minlength="8">
+        </div>
+        <div class="field">
+          <label for="reg-code">Invitation code</label>
+          <input id="reg-code" type="text" name="invitation_code" placeholder="e.g. WELCOME2026" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

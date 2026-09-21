@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Admin — MAISON SKIN{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-side">
+      <div class="logo">MAISON SKIN</div>
+      <nav>
+        <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' }}">Dashboard</a>
+        <a href="{{ url_for('admin.invitation_codes') }}" class="{{ 'active' if request.endpoint == 'admin.invitation_codes' }}">Invitation Codes</a>
+        <a href="{{ url_for('admin.products') }}" class="{{ 'active' if request.endpoint == 'admin.products' }}">Products</a>
+        <a href="{{ url_for('admin.packages') }}" class="{{ 'active' if request.endpoint == 'admin.packages' }}">Packages</a>
+        <a href="{{ url_for('admin.orders') }}" class="{{ 'active' if request.endpoint == 'admin.orders' }}">Orders</a>
+        <a href="{{ url_for('admin.logout') }}" style="margin-top:20px; opacity:0.7;">Sign out</a>
+      </nav>
+    </aside>
+    <main class="admin-main">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-stack">
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block admin_content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>

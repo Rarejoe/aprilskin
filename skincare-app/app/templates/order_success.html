@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed — {{ brand_name }}{% endblock %}
+
+{% block content %}
+<div class="success-shell">
+  <div class="success-mark">&#10003;</div>
+  <h2>Order Confirmed</h2>
+  <p style="margin:0 auto 30px; color:var(--espresso-70);">
+    Thank you — your order for <strong>{{ order.packages.name if order.packages else 'your package' }}</strong>
+    has been received and is now <strong>{{ order.status }}</strong>. A confirmation will follow shortly.
+  </p>
+
+  <div class="summary-card" style="text-align:left;">
+    {% for item in order.order_items %}
+      <div class="summary-line"><span>{{ item.product_name }} &times;{{ item.quantity }}</span><span>{{ item.line_total|currency }}</span></div>
+    {% endfor %}
+    <div class="summary-line"><span>Shipping</span><span>{{ order.shipping_fee|currency }}</span></div>
+    <div class="summary-line total"><span>Total</span><span>{{ order.total|currency }}</span></div>
+  </div>
+
+  <a class="btn btn-outline" style="margin-top:30px;" href="{{ url_for('main.packages') }}">Back to Packages</a>
+</div>
+{% endblock %}
