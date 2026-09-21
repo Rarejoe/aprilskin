@@ -27,7 +27,7 @@ def create_app(config_class: type = Config) -> Flask:
 
     @app.context_processor
     def inject_globals():
-        return {"brand_name": "MAISON SKIN"}
+        return {"brand_name": "APRILSKIN"}
 
     @app.errorhandler(404)
     def not_found(_e):
