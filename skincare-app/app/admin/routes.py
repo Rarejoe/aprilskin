@@ -284,13 +284,23 @@ def create_package():
     flash(f'Package "{name}" created.', "success")
     return redirect(url_for("admin.packages"))
 
-
 @admin_bp.route("/packages/<package_id>/delete", methods=["POST"])
 @admin_login_required
 def delete_package(package_id):
     db = get_service_client()
     db.table("packages").delete().eq("id", package_id).execute()
     flash("Package deleted.", "success")
+    return redirect(url_for("admin.packages"))
+
+
+ @admin_bp.route("/packages/<package_id>/toggle-active", methods=["POST"])
+ @admin_login_required
+ def toggle_package_active(package_id):
+    db = get_service_client()
+    current = db.table("packages").select("is_active").eq("id", package_id).maybe_single().execute()
+    is_active = (current.data or {}).get("is_active", True)
+    db.table("packages").update({"is_active": not is_active}).eq("id", package_id).execute()
+    flash("Package deactivated." if is_active else "Package reactivated.", "success")
     return redirect(url_for("admin.packages"))
 
 
