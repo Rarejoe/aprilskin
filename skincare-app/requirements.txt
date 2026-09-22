@@ -1,6 +1,0 @@
-Flask==3.0.3
-python-dotenv==1.0.1
-supabase==2.7.4
-gunicorn==22.0.0
-Werkzeug==3.0.3
-email-validator==2.2.0
