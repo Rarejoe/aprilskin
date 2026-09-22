@@ -176,6 +176,14 @@ def products():
     items = db.table("products").select("*, inventory(quantity_on_hand)").order(
         "created_at", desc=True
     ).execute().data or []
+    for item in items:
+        inv = item.get("inventory")
+        if isinstance(inv, list):
+            item["stock"] = inv[0]["quantity_on_hand"] if inv else 0
+        elif isinstance(inv, dict):
+            item["stock"] = inv.get("quantity_on_hand", 0)
+        else:
+            item["stock"] = 0
     return render_template("admin/products.html", products=items)
 
 
