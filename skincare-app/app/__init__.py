@@ -28,7 +28,7 @@ def create_app(config_class: type = Config) -> Flask:
     @app.context_processor
     def inject_globals():
         return {
-            "brand_name": "MAISON SKIN",
+            "brand_name": "APRILSKIN",
             "support_phone": app.config.get("SUPPORT_PHONE", ""),
         }
 
