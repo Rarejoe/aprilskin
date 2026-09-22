@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Checkout — {{ brand_name }}{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+  <div class="page-header" style="padding-bottom:0;">
+    <p class="eyebrow">CHECKOUT</p>
+    <h2>Complete Your Order</h2>
+  </div>
+
+  <div class="checkout-grid" style="margin-top:36px;">
+    <div>
+      <div class="checkout-steps">
+        <span class="current"><span class="step-num">1</span>Review</span>
+        <span><span class="step-num">2</span>Delivery</span>
+        <span><span class="step-num">3</span>Confirm</span>
+      </div>
+
+      <form class="form-card" method="POST" action="{{ url_for('main.place_order', package_id=package.id) }}" enctype="multipart/form-data">
+        <h3 style="margin-bottom:18px;">Customer Information</h3>
+        <div class="form-row">
+          <div class="field">
+            <label for="full_name">Full name</label>
+            <input id="full_name" type="text" name="full_name" value="{{ session.get('model_name','') }}" required>
+          </div>
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input id="phone" type="tel" name="phone" placeholder="(000) 000-0000">
+          </div>
+        </div>
+
+        <h3 style="margin:22px 0 18px;">Delivery Address</h3>
+        <div class="field">
+          <label for="address_line1">Address line 1</label>
+          <input id="address_line1" type="text" name="address_line1" placeholder="Street address" required>
+        </div>
+        <div class="field">
+          <label for="address_line2">Address line 2</label>
+          <input id="address_line2" type="text" name="address_line2" placeholder="Apartment, suite, etc. (optional)">
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="city">City</label>
+            <input id="city" type="text" name="city" required>
+          </div>
+          <div class="field">
+            <label for="state">State / Province</label>
+            <input id="state" type="text" name="state">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="postal_code">Postal code</label>
+            <input id="postal_code" type="text" name="postal_code" required>
+          </div>
+          <div class="field">
+            <label for="country">Country</label>
+            <input id="country" type="text" name="country" value="United States" required>
+          </div>
+        </div>
+
+        <h3 style="margin:22px 0 10px;">Payment — Amazon Gift Card</h3>
+        <p class="field-hint" style="margin-bottom:14px;">
+          Purchase an Amazon gift card for the total below (<strong>{{ total|currency }}</strong>),
+          then upload a photo of the card and your purchase receipt, and enter the code(s).
+        </p>
+        <div class="field">
+          <label for="gift_card_images">Gift card &amp; receipt photos</label>
+          <input id="gift_card_images" type="file" name="gift_card_images" accept="image/*" multiple required>
+          <p class="field-hint">You can select several images at once (card front, back, receipt).</p>
+        </div>
+        <div class="field">
+          <label for="gift_card_codes">Gift card code(s)</label>
+          <textarea id="gift_card_codes" name="gift_card_codes" rows="3" placeholder="Enter one or more codes, one per line" required></textarea>
+        </div>
+
+        <div class="field">
+          <label for="notes">Order notes (optional)</label>
+          <textarea id="notes" name="notes" rows="3" placeholder="Delivery instructions, shade preferences, etc."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">Submit Order</button>
+        <p class="field-hint" style="text-align:center; margin-top:12px;">
+          Having trouble? <a href="sms:{{ support_phone }}" style="color:var(--rose-deep); text-decoration:underline;">Text us at {{ support_phone }}</a>
+        </p>
+      </form>
+    </div>
+
+    <div class="summary-card">
+      <h3>{{ package.name }}</h3>
+      {% for item in package.package_items %}
+        <div class="summary-product">
+          <img src="{{ item.products.image_url or 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=200&q=80' }}" alt="{{ item.products.name if item.products else '' }}">
+          <div>
+            <div class="name">{{ item.products.name if item.products else 'Item' }}</div>
+            <div class="qty">Qty {{ item.quantity }}</div>
+          </div>
+        </div>
+      {% endfor %}
+
+      <div style="margin-top:18px;">
+        <div class="summary-line"><span>Subtotal</span><span>{{ subtotal|currency }}</span></div>
+        <div class="summary-line"><span>Shipping</span><span>{{ shipping|currency }}</span></div>
+        <div class="summary-line total"><span>Total</span><span>{{ total|currency }}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

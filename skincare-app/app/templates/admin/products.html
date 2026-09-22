@@ -1,0 +1,46 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Products — Admin{% endblock %}
+{% block admin_content %}
+<div class="admin-topbar"><h2 style="margin:0;">Products</h2></div>
+
+<div class="admin-card">
+  <h3 style="margin-bottom:16px;">Add a Product</h3>
+  <form method="POST" action="{{ url_for('admin.create_product') }}" enctype="multipart/form-data" class="admin-grid-form">
+    <div class="field"><label>Name</label><input type="text" name="name" required></div>
+    <div class="field"><label>Category</label><input type="text" name="category" placeholder="Skincare, Makeup..."></div>
+    <div class="field" style="grid-column:1/-1;"><label>Description</label><textarea name="description" rows="2"></textarea></div>
+    <div class="field"><label>Retail price</label><input type="number" step="0.01" name="retail_price" required></div>
+    <div class="field"><label>Starting stock</label><input type="number" name="quantity" value="0"></div>
+    <div class="field" style="grid-column:1/-1;"><label>Product image</label><input type="file" name="image" accept="image/*"></div>
+    <div class="field" style="grid-column:1/-1;"><button type="submit" class="btn btn-primary">Add Product</button></div>
+  </form>
+</div>
+
+<div class="admin-card">
+  <table class="data-table">
+    <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead>
+    <tbody>
+      {% for p in products %}
+        <tr>
+          <td>{{ p.name }}</td>
+          <td>{{ p.category or '—' }}</td>
+          <td>{{ p.retail_price|currency }}</td>
+          <td>
+            <form method="POST" action="{{ url_for('admin.update_inventory', product_id=p.id) }}" class="inline-form">
+              <input type="number" name="quantity" value="{{ p.inventory[0].quantity_on_hand if p.inventory else 0 }}" style="width:70px; padding:6px 8px; border:1px solid var(--line); border-radius:6px;">
+              <button type="submit" class="btn btn-outline btn-sm">Update</button>
+            </form>
+          </td>
+          <td>
+            <form method="POST" action="{{ url_for('admin.delete_product', product_id=p.id) }}" class="inline-form">
+              <button type="submit" class="btn btn-outline btn-sm">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5">No products yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

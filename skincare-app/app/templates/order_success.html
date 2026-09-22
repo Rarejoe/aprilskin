@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Order Submitted — {{ brand_name }}{% endblock %}
+
+{% block content %}
+<div class="success-shell">
+  <div class="summary-card" style="text-align:center; max-width:480px; margin:60px auto;">
+    <div class="success-mark">&#10003;</div>
+    <h2>Thank you!</h2>
+    <p style="margin:0 auto 8px; color:var(--espresso-70);">
+      Your request will be processed and your product will be on its way.
+    </p>
+    <p style="margin:0 auto 26px; color:var(--espresso-70); font-size:0.88rem;">
+      Order for <strong>{{ order.packages.name if order.packages else 'your package' }}</strong> &mdash;
+      status: <strong>{{ order.status }}</strong>.
+    </p>
+
+    <div style="text-align:left; border-top:1px solid var(--line); padding-top:16px;">
+      {% for item in order.order_items %}
+        <div class="summary-line"><span>{{ item.product_name }} &times;{{ item.quantity }}</span><span>{{ item.line_total|currency }}</span></div>
+      {% endfor %}
+      <div class="summary-line"><span>Shipping</span><span>{{ order.shipping_fee|currency }}</span></div>
+      <div class="summary-line total"><span>Total</span><span>{{ order.total|currency }}</span></div>
+    </div>
+
+    <p class="field-hint" style="margin-top:24px;">
+      Any issues with your order? <a href="sms:{{ support_phone }}" style="color:var(--rose-deep); text-decoration:underline;">Text us at {{ support_phone }}</a>
+    </p>
+  </div>
+
+  <a class="btn btn-outline" href="{{ url_for('main.packages') }}">Back to Packages</a>
+</div>
+{% endblock %}
