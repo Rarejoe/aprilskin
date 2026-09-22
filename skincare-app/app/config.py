@@ -19,7 +19,7 @@ class Config:
     SUPABASE_BANNER_BUCKET = os.environ.get("SUPABASE_BANNER_BUCKET", "banner-images")
     SUPABASE_PAYMENT_PROOF_BUCKET = os.environ.get("SUPABASE_PAYMENT_PROOF_BUCKET", "payment-proofs")
 
-    SUPPORT_PHONE = os.environ.get("SUPPORT_PHONE", ("14092295172")
+    SUPPORT_PHONE = os.environ.get("SUPPORT_PHONE", "14092295172")
 
     ADMIN_BOOTSTRAP_EMAIL = os.environ.get("ADMIN_BOOTSTRAP_EMAIL", "")
     ADMIN_BOOTSTRAP_PASSWORD = os.environ.get("ADMIN_BOOTSTRAP_PASSWORD", "")
