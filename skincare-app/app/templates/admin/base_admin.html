@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Admin — MAISON SKIN{% endblock %}</title>
+  <title>{% block title %}Admin APRILSKIN{% endblock %}</title>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
   <div class="admin-shell">
     <aside class="admin-side">
-      <div class="logo">MAISON SKIN</div>
+      <div class="logo">APRILSKIN</div>
       <nav>
         <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' }}">Dashboard</a>
         <a href="{{ url_for('admin.invitation_codes') }}" class="{{ 'active' if request.endpoint == 'admin.invitation_codes' }}">Invitation Codes</a>
