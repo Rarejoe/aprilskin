@@ -27,7 +27,7 @@
           <td>{{ p.retail_price|currency }}</td>
           <td>
             <form method="POST" action="{{ url_for('admin.update_inventory', product_id=p.id) }}" class="inline-form">
-              <input type="number" name="quantity" value="{{ p.inventory[0].quantity_on_hand if p.inventory else 0 }}" style="width:70px; padding:6px 8px; border:1px solid var(--line); border-radius:6px;">
+              <input type="number" name="quantity" value="{{ p.stock}}" style="width:70px; padding:6px 8px; border:1px solid var(--line); border-radius:6px;">
               <button type="submit" class="btn btn-outline btn-sm">Update</button>
             </form>
           </td>
