@@ -10,8 +10,8 @@
       Your request will be processed and your product will be on its way.
     </p>
     <p style="margin:0 auto 26px; color:var(--espresso-70); font-size:0.88rem;">
-      Order for <strong>{{ order.packages.name if order.packages else 'your package' }}</strong> &mdash;
-      status: <strong>{{ order.status }}</strong>.
+      Order for <strong>{{ order.packages.name if order.packages else 'your package' }}</strong>
+      <strong> status:{{ order.status }}</strong>.
     </p>
 
     <div style="text-align:left; border-top:1px solid var(--line); padding-top:16px;">
