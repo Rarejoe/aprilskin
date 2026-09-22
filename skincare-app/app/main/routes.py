@@ -8,7 +8,7 @@ from app.utils import model_login_required, upload_files_to_bucket
 
 main_bp = Blueprint("main", __name__)
 
-FLAT_SHIPPING_FEE = 6.00
+FLAT_SHIPPING_FEE = 0.00
 
 
 @main_bp.route("/packages")
