@@ -26,20 +26,30 @@
 
 <div class="admin-card">
   <table class="data-table">
-    <thead><tr><th>Package</th><th>Items</th><th>Original</th><th>Model Price</th><th></th></tr></thead>
+    <thead><tr><th>Package</th><th>Items</th><th>Original</th><th>Model Price</th><th>Status</th><th></th></tr></thead>
     <tbody>
       {% for pkg in packages %}
-        <tr>
-          <td>{{ pkg.name }}</td>
-          <td>{{ pkg.package_items|length }} items</td>
-          <td>{{ pkg.original_price|currency }}</td>
-          <td>{{ pkg.model_price|currency }}</td>
-          <td>
-            <form method="POST" action="{{ url_for('admin.delete_package', package_id=pkg.id) }}" class="inline-form">
-              <button type="submit" class="btn btn-outline btn-sm">Delete</button>
-            </form>
-          </td>
-        </tr>
+       <tr>
+  <td>{{ pkg.name }}</td>
+  <td>{{ pkg.package_items|length }} items</td>
+  <td>{{ pkg.original_price|currency }}</td>
+  <td>{{ pkg.model_price|currency }}</td>
+  <td>
+    {% if pkg.is_active %}
+      <span class="badge badge-delivered">Active</span>
+    {% else %}
+      <span class="badge badge-cancelled">Inactive</span>
+    {% endif %}
+  </td>
+  <td>
+    <form method="POST" action="{{ url_for('admin.toggle_package_active', package_id=pkg.id) }}" class="inline-form">
+      <button type="submit" class="btn btn-outline btn-sm">{{ 'Deactivate' if pkg.is_active else 'Activate' }}</button>
+    </form>
+    <form method="POST" action="{{ url_for('admin.delete_package', package_id=pkg.id) }}" class="inline-form">
+      <button type="submit" class="btn btn-outline btn-sm">Delete</button>
+    </form>
+  </td>
+</tr>
       {% else %}
         <tr><td colspan="5">No packages yet.</td></tr>
       {% endfor %}
