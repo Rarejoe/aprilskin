@@ -38,6 +38,12 @@
       </form>
     </div>
 
+    <div class="text-end mb-3">
+    <a href="{{ url_for('auth.forgot_password') }}">
+        Forgot password?
+    </a>
+</div>
+
     <div id="panel-register" class="form-panel">
       <form method="POST" action="{{ url_for('auth.register') }}">
         <div class="field">
