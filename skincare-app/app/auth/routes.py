@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, render_template, request, redirect, url_for, session, flash
+    Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 )
 
 from app.extensions import get_anon_client, get_service_client
@@ -172,51 +172,46 @@ def register():
 def forgot_password():
     if request.method == "GET":
         return render_template("forgot_password.html")
+
     email = request.form.get("email", "").strip()
+
     if not is_valid_email(email):
         flash("Please enter a valid email address.", "error")
         return redirect(url_for("auth.forgot_password"))
-    # Use your existing Supabase anonymous client.
+
     anon = get_anon_client()
+
     try:
-        # Use the actual public URL of your deployed Flask application.
-        redirect_url = url_for(
-            "auth.reset_password",
-            _external=True
-        )
+        redirect_url = "https://aprilskin.store/reset-password"
+
         anon.auth.reset_password_for_email(
             email,
             options={"redirect_to": redirect_url}
         )
+
+        flash(
+            "If an account exists for that email, "
+            "you'll receive a password reset link shortly.",
+            "success"
+        )
+
     except Exception:
         # Avoid exposing account details or internal errors.
-        pass
-    # Use the same message whether or not the email exists.
-    flash(
-        "If an account exists for that email, a password recovery link will be sent.",
-        "success"
-    )
-    return redirect(url_for("auth.welcome"))
-@auth_bp.route("/reset-password", methods=["GET", "POST"])
-def reset_password():
-    if request.method == "GET":
-        return render_template("reset_password.html")
-    password = request.form.get("password", "")
-    confirm_password = request.form.get("confirm_password", "")
-    if len(password) < 8:
-        flash("Your password must be at least 8 characters.", "error")
-        return redirect(url_for("auth.reset_password"))
-    if password != confirm_password:
-        flash("Your passwords do not match.", "error")
-        return redirect(url_for("auth.reset_password"))
-    # Do not update the password using the service-role client.
-    # The recovery session must first be validated.
-    flash(
-        "Password recovery needs to be verified before your password can be changed.",
-        "error"
-    )
-    return redirect(url_for("auth.welcome"))
+        flash(
+            "We couldn't process your request right now. Please try again.",
+            "error"
+        )
 
+    return redirect(url_for("auth.forgot_password"))
+
+
+@auth_bp.route("/reset-password", methods=["GET"])
+def reset_password():
+    return render_template(
+        "reset_password.html",
+        supabase_url=current_app.config["SUPABASE_URL"],
+        supabase_anon_key=current_app.config["SUPABASE_ANON_KEY"],
+    )
 
 @auth_bp.route("/logout")
 def logout():
