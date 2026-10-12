@@ -195,12 +195,10 @@ def forgot_password():
             "success"
         )
 
-    except Exception:
+    except Exception as e:
         # Avoid exposing account details or internal errors.
-        flash(
-            "We couldn't process your request right now. Please try again.",
-            "error"
-        )
+        print(f"PASSWORD RESET ERROR: {e}")
+        flash(str(e), "error")
 
     return redirect(url_for("auth.forgot_password"))
 
