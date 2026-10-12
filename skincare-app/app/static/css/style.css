@@ -410,3 +410,151 @@ footer.site-footer {
     70%{transform:scale(1.06);}
     100%{transform:scale(1);opacity:1;}
 }
+
+
+
+/* APRILSKIN — Password Recovery Pages */
+
+body:has(.auth-recovery-page) {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body:has(.auth-recovery-page) > main {
+    flex: 1;
+    display: flex;
+}
+
+.auth-recovery-page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 20px;
+    background: var(--cream);
+}
+
+.auth-recovery-wrapper {
+    width: 100%;
+    max-width: 440px;
+    margin: auto;
+}
+
+.auth-recovery-brand {
+    display: none;
+}
+
+.auth-recovery-card {
+    padding: 38px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+}
+
+.auth-recovery-eyebrow {
+    color: var(--gold);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.auth-recovery-card h1 {
+    margin: 12px 0;
+    color: var(--espresso);
+    font-family: "Cormorant Garamond", Georgia, serif;
+    font-size: 2.7rem;
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.auth-recovery-description,
+.auth-recovery-note {
+    color: var(--espresso-70);
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+.auth-recovery-description {
+    margin-bottom: 26px;
+}
+
+.auth-recovery-form .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.auth-recovery-form .form-control {
+    width: 100%;
+    min-height: 50px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    box-sizing: border-box;
+    font-family: "Jost", sans-serif;
+}
+
+.auth-recovery-form .form-control:focus {
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(198, 139, 127, 0.16);
+}
+
+.auth-recovery-button {
+    width: 100%;
+    min-height: 50px;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 30px;
+    background: var(--espresso);
+    color: var(--cream);
+    font-family: "Jost", sans-serif;
+    cursor: pointer;
+}
+
+.auth-recovery-button:hover {
+    background: var(--rose-deep);
+}
+
+.auth-recovery-footer {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 0.85rem;
+}
+
+.auth-recovery-footer a {
+    color: var(--espresso-70);
+    text-decoration: none;
+}
+
+.auth-recovery-status {
+    margin-bottom: 20px;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+}
+
+.auth-recovery-status:empty,
+.auth-recovery-status[hidden],
+.auth-recovery-form[hidden] {
+    display: none !important;
+}
+
+.auth-recovery-status.alert-info { background: var(--nude-soft); }
+.auth-recovery-status.alert-success { background: #e6ecdf; }
+.auth-recovery-status.alert-danger { background: #f7e4e1; }
+.auth-recovery-status.alert-warning { background: #f8edda; }
+
+.auth-recovery-note {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.78rem;
+}
+
+@media (max-width: 576px) {
+    .auth-recovery-page { padding: 30px 18px; }
+    .auth-recovery-card { padding: 28px 22px; }
+    .auth-recovery-card h1 { font-size: 2.3rem; }
+}
+
