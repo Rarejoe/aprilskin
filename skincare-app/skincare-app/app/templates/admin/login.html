@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Sign In — MAISON SKIN</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <section class="hero" style="background:linear-gradient(160deg, var(--espresso), #3a2f27);">
+    <div class="hero-card">
+      <p class="hero-eyebrow" style="color:var(--gold); text-align:center;">MAISON SKIN</p>
+      <h1 style="text-align:center; font-size:1.9rem;">Admin Sign In</h1>
+      <p class="hero-sub">Manage invitation codes, catalog, packages and orders.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-stack">
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" action="{{ url_for('admin.login_post') }}">
+        <div class="field">
+          <label for="email">Admin email</label>
+          <input id="email" type="email" name="email" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+      </form>
+    </div>
+  </section>
+</body>
+</html>
