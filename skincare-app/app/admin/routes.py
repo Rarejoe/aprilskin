@@ -321,6 +321,14 @@ def orders():
 def update_order_status(order_id):
     db = get_service_client()
     new_status = request.form.get("status")
+    # Never move an unpaid Paystack order into fulfilment.
+    if new_status in ("confirmed", "processing", "shipped", "delivered"):
+        current = db.table("orders").select("payment_method,payment_status").eq(
+            "id", order_id).maybe_single().execute()
+        row = current.data if current else None
+        if row and row.get("payment_method") == "paystack" and row.get("payment_status") != "paid":
+            flash("This order hasn't been paid yet, so it can't be moved to that status.", "error")
+            return redirect(url_for("admin.orders"))
     db.table("orders").update({"status": new_status}).eq("id", order_id).execute()
     flash("Order status updated.", "success")
     return redirect(url_for("admin.orders"))

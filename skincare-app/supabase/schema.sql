@@ -117,6 +117,16 @@ create table if not exists public.orders (
     payment_method text,
     gift_card_codes text,
     gift_card_image_urls jsonb,
+    -- Paystack payment tracking (see supabase/migrations/001_paystack_payments.sql)
+    payment_status text not null default 'unpaid'
+        check (payment_status in ('unpaid', 'paid', 'failed')),
+    payment_reference text,
+    payment_currency text,
+    payment_amount bigint,
+    paid_at timestamptz,
+    paystack_transaction_id bigint,
+    payment_channel text,
+    payment_gateway_response text,
     delivery_name text not null,
     delivery_phone text,
     delivery_address jsonb not null,
@@ -142,6 +152,8 @@ create table if not exists public.order_items (
 -- Helpful indexes
 -- ---------------------------------------------------------------------
 create index if not exists idx_orders_model on public.orders(model_id);
+create unique index if not exists idx_orders_payment_reference
+    on public.orders (payment_reference) where payment_reference is not null;
 create index if not exists idx_package_items_package on public.package_items(package_id);
 create index if not exists idx_invitation_codes_code on public.invitation_codes(code);
 
@@ -188,6 +200,8 @@ create policy "Models can view own orders" on public.orders
 create policy "Models can create own orders" on public.orders
     for insert with check (
         model_id in (select id from public.models where user_id = auth.uid())
+        and payment_status = 'unpaid'
+        and status = 'pending'
     );
 
 create policy "Models can view own order items" on public.order_items

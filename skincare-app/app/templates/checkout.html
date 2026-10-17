@@ -16,7 +16,7 @@
         <span><span class="step-num">3</span>Confirm</span>
       </div>
 
-      <form class="form-card" method="POST" action="{{ url_for('main.place_order', package_id=package.id) }}" enctype="multipart/form-data">
+      <form class="form-card" method="POST" action="{{ url_for('main.place_order', package_id=package.id) }}">
         <h3 style="margin-bottom:18px;">Customer Information</h3>
         <div class="form-row">
           <div class="field">
@@ -59,27 +59,22 @@
           </div>
         </div>
 
-        <h3 style="margin:22px 0 10px;">Payment:  Apple Gift Card</h3>
+        <h3 style="margin:22px 0 10px;">Payment</h3>
         <p class="field-hint" style="margin-bottom:14px;">
-          Purchase an Apple gift card for the total below (<strong>{{ total|currency }}</strong>),
-          then upload a photo of the card and your purchase receipt, and enter the code(s).
+          You'll pay <strong>{{ total|currency }}</strong>{% if charge_note %} (charged as <strong>{{ charge_note }}</strong>){% endif %}
+          securely on Paystack using your card, bank transfer or other available options. You'll be
+          brought back here as soon as the payment is confirmed.
         </p>
-        <div class="field">
-          <label for="gift_card_images">Gift card &amp; receipt photos</label>
-          <input id="gift_card_images" type="file" name="gift_card_images" accept="image/*" multiple required>
-          <p class="field-hint">You can select several images at once (card front, back, receipt).</p>
-        </div>
-        <div class="field">
-          <label for="gift_card_codes">Gift card code(s)</label>
-          <textarea id="gift_card_codes" name="gift_card_codes" rows="3" placeholder="Enter one or more codes, one per line" required></textarea>
-        </div>
 
         <div class="field">
           <label for="notes">Order notes (optional)</label>
           <textarea id="notes" name="notes" rows="3" placeholder="Delivery instructions, shade preferences, etc."></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">Submit Order</button>
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;" {{ '' if payments_enabled else 'disabled' }}>Pay {{ total|currency }} Securely</button>
+        {% if not payments_enabled %}
+          <p class="field-hint" style="text-align:center; margin-top:8px;">Online payment is temporarily unavailable.</p>
+        {% endif %}
         <p class="field-hint" style="text-align:center; margin-top:12px;">
           Having trouble? <a href="https://wa.me/{{ support_phone }}" style="color:var(--rose-deep); text-decoration:underline;">Text us at {{ support_phone }}</a>
         </p>

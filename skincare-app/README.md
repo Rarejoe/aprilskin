@@ -110,6 +110,5 @@ Seeded invitation codes from `schema.sql`: `WELCOME2026` (5 uses) and
   `static/css/style.css` for your brand's real photography.
 - Shipping is currently a flat `$6.00` fee (`FLAT_SHIPPING_FEE` in
   `app/main/routes.py`) — replace with your own logic if needed.
-- Payment methods are captured as a string (`card` / `paypal` /
-  `bank_transfer`) for the admin's reference; wire up a real payment
-  processor (Stripe, etc.) in `place_order()` before going live.
+- Payments are handled by Paystack (initialize → verify → webhook). See
+  **PAYSTACK_SETUP.md** for env vars, dashboard configuration and testing.

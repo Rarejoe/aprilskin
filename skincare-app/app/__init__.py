@@ -3,10 +3,11 @@ import os
 from flask import Flask
 from dotenv import load_dotenv
 
-from app.config import Config
-from app.utils import to_currency
-
+# Load .env BEFORE importing Config, which reads os.environ when it is imported.
 load_dotenv()
+
+from app.config import Config  # noqa: E402
+from app.utils import to_currency  # noqa: E402
 
 
 def create_app(config_class: type = Config) -> Flask:

@@ -357,6 +357,9 @@ table.data-table tr:last-child td { border-bottom: none; }
 .badge-shipped { background: #e2ddf3; color: #4a3a80; }
 .badge-delivered { background: #dcecd8; color: #33612c; }
 .badge-cancelled { background: #f3d8d5; color: #8a3a2f; }
+.badge-pay-paid { background: #dcecd8; color: #33612c; }
+.badge-pay-unpaid { background: #f3e3c9; color: #7a5a15; }
+.badge-pay-failed { background: #f3d8d5; color: #8a3a2f; }
 
 .inline-form { display: inline-flex; gap: 8px; align-items: center; }
 .admin-grid-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
