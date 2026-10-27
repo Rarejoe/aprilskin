@@ -117,14 +117,14 @@ create table if not exists public.orders (
     payment_method text,
     gift_card_codes text,
     gift_card_image_urls jsonb,
-    -- Paystack payment tracking (see supabase/migrations/001_paystack_payments.sql)
+    -- Online payment tracking (Flutterwave; see supabase/migrations/)
     payment_status text not null default 'unpaid'
         check (payment_status in ('unpaid', 'paid', 'failed')),
     payment_reference text,
     payment_currency text,
     payment_amount bigint,
     paid_at timestamptz,
-    paystack_transaction_id bigint,
+    gateway_transaction_id bigint,
     payment_channel text,
     payment_gateway_response text,
     delivery_name text not null,

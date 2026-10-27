@@ -5,7 +5,7 @@ from flask import (
     current_app
 )
 
-from app import paystack
+from app import flutterwave
 from app.extensions import get_service_client
 from app.utils import model_login_required, is_valid_email
 
@@ -55,10 +55,10 @@ def checkout(package_id):
     # If we charge in a non-USD currency, show the customer what they'll actually pay.
     charge_note = None
     try:
-        currency, subunit = paystack.charge_for(total)
+        currency, subunit = flutterwave.charge_for(total)
         if currency != "USD":
             charge_note = f"{currency} {subunit / 100:,.2f}"
-    except paystack.PaystackError:
+    except flutterwave.FlutterwaveError:
         pass  # misconfiguration is reported when the customer tries to pay
 
     return render_template(
@@ -69,23 +69,23 @@ def checkout(package_id):
         shipping=FLAT_SHIPPING_FEE,
         total=total,
         charge_note=charge_note,
-        payments_enabled=paystack.is_configured(),
+        payments_enabled=flutterwave.is_configured(),
     )
 
 
 def _start_payment(db, order: dict):
-    """Create a fresh Paystack transaction for `order` and return its checkout URL.
+    """Create a fresh Flutterwave transaction for `order` and return its checkout URL.
 
     The amount always comes from the order row in our database (never from the
-    browser). A new reference is used per attempt because Paystack rejects reused
-    references. Raises PaystackError on any failure.
+    browser). A new reference is used per attempt because Flutterwave rejects reused
+    references. Raises FlutterwaveError on any failure.
     """
     email = (session.get("model_email") or "").strip()
     if not is_valid_email(email):
-        raise paystack.PaystackError("We couldn't find a valid email address for your account.")
+        raise flutterwave.FlutterwaveError("We couldn't find a valid email address for your account.")
 
-    currency, amount = paystack.charge_for(order["total"])
-    reference = paystack.new_reference()
+    currency, amount = flutterwave.charge_for(order["total"])
+    reference = flutterwave.new_reference(order["id"])
 
     db.table("orders").update({
         "payment_reference": reference,
@@ -94,19 +94,20 @@ def _start_payment(db, order: dict):
         "payment_status": "unpaid",
     }).eq("id", order["id"]).neq("payment_status", "paid").execute()
 
-    data = paystack.initialize_transaction(
+    data = flutterwave.initialize_transaction(
         email=email,
+        name=(session.get("model_name") or "").strip(),
         amount=amount,
         currency=currency,
         reference=reference,
-        callback=paystack.callback_url(url_for("main.payment_callback")),
+        callback=flutterwave.callback_url(url_for("main.payment_callback")),
         metadata={
             "order_id": order["id"],
             "model_id": order["model_id"],
             "package_id": order.get("package_id"),
         },
     )
-    return data["authorization_url"]
+    return data["link"]
 
 
 @main_bp.route("/checkout/<package_id>", methods=["POST"])
@@ -139,7 +140,7 @@ def place_order(package_id):
         flash("Please complete all required delivery fields.", "error")
         return redirect(url_for("main.checkout", package_id=package_id))
 
-    if not paystack.is_configured():
+    if not flutterwave.is_configured():
         flash("Online payment isn't available right now. Please contact support.", "error")
         return redirect(url_for("main.checkout", package_id=package_id))
 
@@ -147,8 +148,8 @@ def place_order(package_id):
     subtotal = float(package["model_price"])
     total = subtotal + FLAT_SHIPPING_FEE
     try:
-        paystack.charge_for(total)  # fail before creating an order if we can't charge
-    except paystack.PaystackError as exc:
+        flutterwave.charge_for(total)  # fail before creating an order if we can't charge
+    except flutterwave.FlutterwaveError as exc:
         current_app.logger.error("Cannot start payment for package %s: %s", package_id, exc)
         flash("We couldn't start your payment. Please contact support.", "error")
         return redirect(url_for("main.checkout", package_id=package_id))
@@ -160,7 +161,7 @@ def place_order(package_id):
         "subtotal": subtotal,
         "shipping_fee": FLAT_SHIPPING_FEE,
         "total": total,
-        "payment_method": "paystack",
+        "payment_method": "flutterwave",
         "payment_status": "unpaid",
         "delivery_name": full_name,
         "delivery_phone": phone,
@@ -194,41 +195,40 @@ def place_order(package_id):
 
     try:
         return redirect(_start_payment(db, order))
-    except paystack.PaystackError as exc:
-        current_app.logger.error("Paystack initialize failed for order %s: %s", order["id"], exc)
+    except flutterwave.FlutterwaveError as exc:
+        current_app.logger.error("Flutterwave initialize failed for order %s: %s", order["id"], exc)
         db.table("orders").update({"payment_status": "failed"}).eq("id", order["id"]).execute()
         flash("We couldn't start your payment. Please try again.", "error")
         return redirect(url_for("main.order_success", order_id=order["id"]))
 
 
-def _find_order(db, reference: str, tx: dict | None = None):
-    """Find the order a Paystack transaction belongs to: by reference first, then by
-    the order_id we put in the transaction metadata (covers a late payment on an
-    earlier attempt's reference)."""
+def _find_order(db, reference: str):
+    """Find the order a transaction belongs to: by stored reference first, then by the
+    order id embedded in our own tx_ref (covers a late payment on an earlier attempt)."""
     res = db.table("orders").select("*").eq("payment_reference", reference).maybe_single().execute()
     if res and res.data:
         return res.data
-    order_id = paystack.transaction_metadata(tx or {}).get("order_id")
+    order_id = flutterwave.order_id_from_reference(reference)
     if order_id:
         res = db.table("orders").select("*").eq("id", order_id).maybe_single().execute()
-        if res and res.data and res.data.get("payment_method") == "paystack":
+        if res and res.data and res.data.get("payment_method") in flutterwave.ONLINE_METHODS:
             return res.data
     return None
 
 
 @main_bp.route("/payment/callback")
 def payment_callback():
-    """Browser lands here after paying on Paystack. We never trust the query string:
-    the outcome is whatever Paystack's verify API says."""
-    reference = (request.args.get("reference") or request.args.get("trxref") or "").strip()
-    if not paystack.is_valid_reference(reference):
+    """Browser lands here after paying on Flutterwave (?status=...&tx_ref=...&transaction_id=...).
+    We never trust the query string: the outcome is whatever Flutterwave's verify API says."""
+    reference = (request.args.get("tx_ref") or "").strip()
+    if not flutterwave.is_valid_reference(reference):
         flash("We couldn't read your payment reference.", "error")
         return redirect(url_for("main.packages"))
 
     db = get_service_client()
     try:
-        tx = paystack.verify_transaction(reference)
-    except paystack.PaystackError as exc:
+        tx = flutterwave.verify_transaction(reference)
+    except flutterwave.FlutterwaveError as exc:
         current_app.logger.warning("Verify failed in callback for %s: %s", reference, exc)
         order = _find_order(db, reference)
         if order:
@@ -237,13 +237,13 @@ def payment_callback():
         flash("We couldn't confirm that payment. If you were charged, contact support.", "error")
         return redirect(url_for("main.packages"))
 
-    order = _find_order(db, reference, tx)
+    order = _find_order(db, reference)
     if not order:
         current_app.logger.error("Callback for unknown reference %s", reference)
         flash("We couldn't find an order for that payment. If you were charged, contact support.", "error")
         return redirect(url_for("main.packages"))
 
-    outcome = paystack.apply_verified_transaction(db, order, tx)
+    outcome = flutterwave.apply_verified_transaction(db, order, tx)
     if outcome == "mismatch":
         flash("Your payment couldn't be matched to this order. Please contact support.", "error")
     return redirect(url_for("main.order_success", order_id=order["id"]))
@@ -252,12 +252,12 @@ def payment_callback():
 @main_bp.route("/order/<order_id>/pay", methods=["POST"])
 @model_login_required
 def retry_payment(order_id):
-    """Let the owner retry payment on an unpaid Paystack order."""
+    """Let the owner retry payment on an unpaid Flutterwave order."""
     db = get_service_client()
     res = db.table("orders").select("*").eq("id", order_id).maybe_single().execute()
     order = res.data if res else None
     if (not order or order.get("model_id") != session["model_id"]
-            or order.get("payment_method") != "paystack"):
+            or order.get("payment_method") not in flutterwave.ONLINE_METHODS):
         flash("Order not found.", "error")
         return redirect(url_for("main.packages"))
     if order.get("payment_status") == "paid":
@@ -270,30 +270,32 @@ def retry_payment(order_id):
     # check before opening a second transaction so the customer can't pay twice.
     if order.get("payment_reference"):
         try:
-            tx = paystack.verify_transaction(order["payment_reference"])
-            if paystack.apply_verified_transaction(db, order, tx) in ("paid", "already_paid"):
+            tx = flutterwave.verify_transaction(order["payment_reference"])
+            if flutterwave.apply_verified_transaction(db, order, tx) in ("paid", "already_paid"):
                 return redirect(url_for("main.order_success", order_id=order_id))
-        except paystack.PaystackError:
+        except flutterwave.FlutterwaveError:
             pass
 
     try:
         return redirect(_start_payment(db, order))
-    except paystack.PaystackError as exc:
-        current_app.logger.error("Paystack re-initialize failed for order %s: %s", order_id, exc)
+    except flutterwave.FlutterwaveError as exc:
+        current_app.logger.error("Flutterwave re-initialize failed for order %s: %s", order_id, exc)
         flash("We couldn't start your payment. Please try again.", "error")
         return redirect(url_for("main.order_success", order_id=order_id))
 
 
-@main_bp.route("/webhooks/paystack", methods=["POST"])
-def paystack_webhook():
-    """Server-to-server notification from Paystack (no session, no login).
+@main_bp.route("/webhooks/flutterwave", methods=["POST"])
+def flutterwave_webhook():
+    """Server-to-server notification from Flutterwave (no session, no login).
 
-    Authenticated by the X-Paystack-Signature HMAC-SHA512 of the raw body. Even
-    then we re-verify the transaction with Paystack's API before touching an order.
-    Returning non-2xx makes Paystack retry, so we only do that for transient errors.
+    Authenticated by the secret hash sent in the `verif-hash` header. Even then we
+    re-verify the transaction with Flutterwave's API before touching an order.
+    Returning non-2xx makes Flutterwave retry, so we only do that for transient errors.
     """
     raw = request.get_data()
-    if not paystack.valid_webhook_signature(raw, request.headers.get("X-Paystack-Signature")):
+    if not flutterwave.valid_webhook_signature(
+        raw, request.headers.get("verif-hash"), request.headers.get("flutterwave-signature")
+    ):
         return "", 401
 
     try:
@@ -301,23 +303,23 @@ def paystack_webhook():
     except (ValueError, UnicodeDecodeError):
         return "", 400
 
-    if event.get("event") != "charge.success":
+    if (event.get("event") or event.get("type")) != "charge.completed":
         return "", 200  # acknowledged, nothing to do
 
-    reference = ((event.get("data") or {}).get("reference") or "").strip()
-    if not paystack.is_valid_reference(reference):
-        return "", 200
+    reference = ((event.get("data") or {}).get("tx_ref") or "").strip()
+    if not flutterwave.is_valid_reference(reference):
+        return "", 200  # not one of our transactions
 
     db = get_service_client()
     try:
-        tx = paystack.verify_transaction(reference)
-        order = _find_order(db, reference, tx)
+        tx = flutterwave.verify_transaction(reference)
+        order = _find_order(db, reference)
         if not order:
             current_app.logger.warning("Webhook for unknown reference %s", reference)
             return "", 200
-        outcome = paystack.apply_verified_transaction(db, order, tx)
+        outcome = flutterwave.apply_verified_transaction(db, order, tx)
         current_app.logger.info("Webhook %s -> order %s: %s", reference, order["id"], outcome)
-    except paystack.PaystackError as exc:
+    except flutterwave.FlutterwaveError as exc:
         if exc.retryable:
             return "", 500
         current_app.logger.error("Webhook verify rejected for %s: %s", reference, exc)
@@ -345,18 +347,18 @@ def order_success(order_id):
         return redirect(url_for("main.packages"))
 
     # If the customer returns before the callback/webhook has been processed, ask
-    # Paystack directly so the page shows the real state.
-    if (order.get("payment_method") == "paystack" and order.get("payment_status") != "paid"
+    # Flutterwave directly so the page shows the real state.
+    if (order.get("payment_method") in flutterwave.ONLINE_METHODS and order.get("payment_status") != "paid"
             and order.get("payment_reference")):
         try:
-            tx = paystack.verify_transaction(order["payment_reference"])
-            paystack.apply_verified_transaction(db, order, tx)
+            tx = flutterwave.verify_transaction(order["payment_reference"])
+            flutterwave.apply_verified_transaction(db, order, tx)
             order = (
                 db.table("orders")
                 .select("*, order_items(*), packages(name, cover_image_url)")
                 .eq("id", order_id).maybe_single().execute().data
             ) or order
-        except paystack.PaystackError:
+        except flutterwave.FlutterwaveError:
             pass  # show the current stored state
 
     return render_template("order_success.html", order=order)

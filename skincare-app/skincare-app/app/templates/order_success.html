@@ -4,8 +4,8 @@
 {% block content %}
 <div class="success-shell">
   <div class="summary-card" style="text-align:center; max-width:480px; margin:60px auto;">
-{% set is_paystack = order.payment_method == 'paystack' %}
-{% if not is_paystack or order.payment_status == 'paid' %}
+{% set is_online = order.payment_method in ['flutterwave', 'paystack'] %}
+{% if not is_online or order.payment_status == 'paid' %}
 <div class="success-mark">
   <svg viewBox="0 0 52 52" aria-hidden="true">
     <circle class="bg" cx="26" cy="26" r="25"/>
@@ -14,7 +14,7 @@
 </div>   
     <h2>Thank you!</h2>
     <p style="margin:0 auto 8px; color:var(--espresso-70);">
-      {% if is_paystack %}Your payment was received. {% endif %}Your request will be processed and your product will be on its way.
+      {% if is_online %}Your payment was received. {% endif %}Your request will be processed and your product will be on its way.
     </p>
 {% elif order.payment_status == 'failed' %}
     <h2>Payment not completed</h2>
@@ -36,7 +36,7 @@
 {% endif %}
     <p style="margin:0 auto 26px; color:var(--espresso-70); font-size:0.88rem;">
       Order for <strong>{{ order.packages.name if order.packages else 'your package' }}</strong>
-      <strong> status:{{ order.status }}</strong>{% if is_paystack %}<strong> · payment: {{ order.payment_status }}</strong>{% endif %}.
+      <strong> status:{{ order.status }}</strong>{% if is_online %}<strong> · payment: {{ order.payment_status }}</strong>{% endif %}.
     </p>
 
     <div style="text-align:left; border-top:1px solid var(--line); padding-top:16px;">

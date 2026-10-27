@@ -16,11 +16,13 @@ services:
         sync: false
       - key: FLASK_ENV
         value: production
-      - key: PAYSTACK_SECRET_KEY
+      - key: FLUTTERWAVE_SECRET_KEY
         sync: false
-      - key: PAYSTACK_CURRENCY
+      - key: FLUTTERWAVE_SECRET_HASH
         sync: false
-      - key: PAYSTACK_USD_EXCHANGE_RATE
+      - key: FLUTTERWAVE_CURRENCY
+        sync: false
+      - key: FLUTTERWAVE_USD_EXCHANGE_RATE
         sync: false
       - key: APP_BASE_URL
         sync: false

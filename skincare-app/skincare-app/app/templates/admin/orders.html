@@ -13,9 +13,9 @@
           <td>{{ order.models.display_name if order.models else '—' }}</td>
           <td>{{ order.total|currency }}</td>
           <td style="font-size:0.8rem;">
-            {% if order.payment_method == 'paystack' %}
+            {% if order.payment_method in ['flutterwave', 'paystack'] %}
               <span class="badge badge-pay-{{ order.payment_status }}">{{ order.payment_status }}</span>
-              <div style="margin-top:4px; color:var(--espresso-70);">Paystack{% if order.payment_channel %} · {{ order.payment_channel }}{% endif %}</div>
+              <div style="margin-top:4px; color:var(--espresso-70);">{{ order.payment_method|capitalize }}{% if order.payment_channel %} · {{ order.payment_channel }}{% endif %}</div>
               {% if order.payment_reference %}<div style="font-family:monospace; font-size:0.7rem; word-break:break-all;">{{ order.payment_reference }}</div>{% endif %}
             {% else %}{{ (order.payment_method or '—')|replace('_',' ') }}{% endif %}
           </td>

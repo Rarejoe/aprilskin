@@ -8,6 +8,7 @@ from flask import (
     current_app
 )
 
+from app import flutterwave
 from app.extensions import get_anon_client, get_service_client
 from app.utils import admin_login_required, is_valid_email
 
@@ -321,12 +322,12 @@ def orders():
 def update_order_status(order_id):
     db = get_service_client()
     new_status = request.form.get("status")
-    # Never move an unpaid Paystack order into fulfilment.
+    # Never move an unpaid online-payment order into fulfilment.
     if new_status in ("confirmed", "processing", "shipped", "delivered"):
         current = db.table("orders").select("payment_method,payment_status").eq(
             "id", order_id).maybe_single().execute()
         row = current.data if current else None
-        if row and row.get("payment_method") == "paystack" and row.get("payment_status") != "paid":
+        if row and row.get("payment_method") in flutterwave.ONLINE_METHODS and row.get("payment_status") != "paid":
             flash("This order hasn't been paid yet, so it can't be moved to that status.", "error")
             return redirect(url_for("admin.orders"))
     db.table("orders").update({"status": new_status}).eq("id", order_id).execute()
